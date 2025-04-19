@@ -305,7 +305,7 @@
       </div>
       <div id="start-screen">
         <h1>ASTEROID ANNIHILATOR</h1>
-        <p>Use arrow keys to move, space to shoot</p>
+        <p>Use arrow keys or WASD to move, spacebar or Z to shoot</p>
         <p>Press H for hyperspace jump (limited uses)</p>
         <button id="start-button">START GAME</button>
       </div>
@@ -373,7 +373,11 @@
         ArrowLeft: false,
         ArrowRight: false,
         ' ': false,
-        'h': false
+        'h': false,
+        'w': false,
+        'a': false,
+        'd': false,
+        'z': false
       };
 
       // Asteroid settings
@@ -549,7 +553,7 @@
       // Handle spaceship movement and physics
       function updateSpaceship() {
         // Apply input to spaceship
-        if (keys.ArrowUp) {
+        if (keys.ArrowUp || keys.w) {
           // Calculate thrust vector based on rotation
           const angle = spaceship.rotation * Math.PI / 180;
           spaceship.vx += Math.sin(angle) * 0.2;
@@ -559,11 +563,11 @@
           spaceship.thrust = 0;
         }
 
-        if (keys.ArrowLeft) {
+        if (keys.ArrowLeft || keys.a) {
           spaceship.rotation -= 5;
         }
 
-        if (keys.ArrowRight) {
+        if (keys.ArrowRight || keys.d) {
           spaceship.rotation += 5;
         }
 
@@ -1043,8 +1047,8 @@
           e.preventDefault();
         }
 
-        // Shoot on spacebar press
-        if (e.key === ' ' && gameRunning) {
+        // Shoot on spacebar or Z press
+        if ((e.key === ' ' || e.key === 'z') && gameRunning) {
           fireLaser();
         }
 
