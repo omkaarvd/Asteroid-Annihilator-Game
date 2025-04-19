@@ -112,8 +112,10 @@
       .asteroid {
         position: absolute;
         background-color: #888;
-        border-radius: 50%;
+        border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
         transform: translate(-50%, -50%);
+        box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.5);
+        animation: spin linear infinite;
       }
 
       .asteroid::before {
@@ -136,6 +138,16 @@
         height: 15%;
         background-color: #666;
         border-radius: 50%;
+      }
+
+      @keyframes spin {
+        from {
+          transform: translate(-50%, -50%) rotate(0deg);
+        }
+
+        to {
+          transform: translate(-50%, -50%) rotate(360deg);
+        }
       }
 
       .fragment {
@@ -364,6 +376,16 @@
         'h': false
       };
 
+      // Asteroid settings
+      const ASTEROID_SPEED_MIN = 0.5;
+      const ASTEROID_SPEED_MAX = 2.0;
+      const ASTEROID_SIZE_MIN = 20;
+      const ASTEROID_SIZE_MAX = 60;
+      const ASTEROID_SPAWN_RATE = 2000; // ms between asteroid spawns
+      let currentAsteroidSpeedMin = ASTEROID_SPEED_MIN;
+      let currentAsteroidSpeedMax = ASTEROID_SPEED_MAX;
+      let currentSpawnRate = ASTEROID_SPAWN_RATE;
+
       // Initialize the game
       function init() {
         // Set up stars for the parallax background
@@ -479,14 +501,19 @@
         updateWeaponCooldown(deltaTime);
         updateHyperspace(deltaTime);
 
-        // Spawn new asteroids over time
-        if (timestamp - lastAsteroidTime > asteroidInterval) {
-          spawnAsteroid();
-          lastAsteroidTime = timestamp;
+        // Spawn new asteroids over time with randomized timing
+        if (timestamp - lastAsteroidTime > currentSpawnRate * getRandom(0.8, 1.2)) {
+          // Limit total objects on screen
+          if (asteroids.length + fragments.length < 30) {
+            spawnAsteroid();
+            lastAsteroidTime = timestamp;
 
-          // Gradually increase difficulty
-          if (asteroidInterval > 500) {
-            asteroidInterval -= 50;
+            // Gradually increase difficulty
+            if (currentSpawnRate > 500) {
+              currentSpawnRate *= 0.95; // Gradually decrease spawn time
+              currentAsteroidSpeedMin *= 1.02; // Gradually increase speed
+              currentAsteroidSpeedMax *= 1.02;
+            }
           }
         }
 
@@ -574,27 +601,44 @@
 
       // Create and manage asteroids
       function spawnAsteroid() {
-        const size = 40 + Math.random() * 40;
+        const size = getRandom(ASTEROID_SIZE_MIN, ASTEROID_SIZE_MAX);
+        const edge = Math.floor(getRandom(0, 4)); // 0: top, 1: right, 2: bottom, 3: left
         let x, y;
+        const buffer = size; // Spawn outside the visible area
 
-        // Spawn asteroids from outside the visible area
-        if (Math.random() < 0.5) {
-          x = Math.random() < 0.5 ? -size : window.innerWidth + size;
-          y = Math.random() * window.innerHeight;
-        } else {
-          x = Math.random() * window.innerWidth;
-          y = Math.random() < 0.5 ? -size : window.innerHeight + size;
+        switch (edge) {
+          case 0: // Top
+            x = getRandom(0, window.innerWidth);
+            y = -buffer;
+            break;
+          case 1: // Right
+            x = window.innerWidth + buffer;
+            y = getRandom(0, window.innerHeight);
+            break;
+          case 2: // Bottom
+            x = getRandom(0, window.innerWidth);
+            y = window.innerHeight + buffer;
+            break;
+          case 3: // Left
+            x = -buffer;
+            y = getRandom(0, window.innerHeight);
+            break;
         }
+
+        // Angle towards the center (roughly)
+        const angleToCenter = Math.atan2(
+          (window.innerHeight / 2) - y,
+          (window.innerWidth / 2) - x
+        );
+        const speed = getRandom(currentAsteroidSpeedMin, currentAsteroidSpeedMax);
+        const rotationSpeed = getRandom(0.1, 1.0) * (Math.random() < 0.5 ? 1 : -1); // Random direction
 
         // Create asteroid element
         const asteroidElement = document.createElement('div');
         asteroidElement.className = 'asteroid';
         asteroidElement.style.width = size + 'px';
         asteroidElement.style.height = size + 'px';
-
-        // Random rotation for variety
-        const rotation = Math.random() * 360;
-        asteroidElement.style.transform = `translate(-50%, -50%) rotate(${rotation}deg)`;
+        asteroidElement.style.animationDuration = `${getRandom(5, 15)}s`; // Vary spin speed
 
         // Create asteroid object
         const asteroid = {
@@ -602,10 +646,10 @@
           x,
           y,
           size,
-          vx: (Math.random() - 0.5) * 2,
-          vy: (Math.random() - 0.5) * 2,
-          rotation,
-          rotationSpeed: (Math.random() - 0.5) * 2
+          vx: Math.cos(angleToCenter) * speed,
+          vy: Math.sin(angleToCenter) * speed,
+          rotation: 0,
+          rotationSpeed
         };
 
         // Add to game
@@ -623,16 +667,20 @@
           // Rotate asteroid
           asteroid.rotation += asteroid.rotationSpeed;
 
-          // Screen wrapping
-          if (asteroid.x < -asteroid.size) asteroid.x = window.innerWidth + asteroid.size;
-          if (asteroid.x > window.innerWidth + asteroid.size) asteroid.x = -asteroid.size;
-          if (asteroid.y < -asteroid.size) asteroid.y = window.innerHeight + asteroid.size;
-          if (asteroid.y > window.innerHeight + asteroid.size) asteroid.y = -asteroid.size;
+          // Screen wrapping with buffer for removal
+          const removalBuffer = asteroid.size * 2;
+          if (asteroid.x < -removalBuffer ||
+            asteroid.x > window.innerWidth + removalBuffer ||
+            asteroid.y < -removalBuffer ||
+            asteroid.y > window.innerHeight + removalBuffer) {
+            asteroid.element.remove();
+            asteroids.splice(asteroids.indexOf(asteroid), 1);
+            return;
+          }
 
           // Update visual representation
           asteroid.element.style.left = asteroid.x + 'px';
           asteroid.element.style.top = asteroid.y + 'px';
-          asteroid.element.style.transform = `translate(-50%, -50%) rotate(${asteroid.rotation}deg)`;
         });
       }
 
@@ -1028,6 +1076,10 @@
       document.addEventListener('contextmenu', (e) => {
         e.preventDefault();
       });
+
+      function getRandom(min, max) {
+        return Math.random() * (max - min) + min;
+      }
     </script>
   </body>
 
