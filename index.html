@@ -114,59 +114,20 @@
         to {
           transform: translateY(calc(100vh + 10px));
         }
-
-        /* Ensure it goes fully off screen */
       }
 
       /* Spaceship */
       #spaceship {
         position: absolute;
-        width: 0;
-        height: 0;
-        border-left: 12px solid transparent;
-        border-right: 12px solid transparent;
-        border-bottom: 25px solid var(--ship-color);
+        width: 24px;
+        height: 28px;
+        background-color: var(--ship-color);
         z-index: 10;
-        /* Center the rotation point */
-        transform-origin: center 70%;
-        /* Adjust origin slightly towards the bottom */
+        /* Define a more complex ship shape */
+        clip-path: polygon(50% 0%, 100% 85%, 80% 100%, 20% 100%, 0% 85%);
+        /* Adjust origin for the new shape */
+        transform-origin: center 60%;
         transition: transform 0.1s linear;
-        /* Smooth rotation */
-      }
-
-      /* Propellant Flame */
-      #spaceship::after {
-        content: '';
-        position: absolute;
-        bottom: -15px;
-        /* Position below the ship's base */
-        left: 50%;
-        transform: translateX(-50%);
-        width: 8px;
-        height: 0px;
-        /* Starts hidden */
-        background-color: var(--propellant-color);
-        border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
-        box-shadow: 0 0 10px var(--propellant-color);
-        opacity: 0;
-        transition: height 0.1s ease-out, opacity 0.1s ease-out;
-        animation: flicker 0.1s infinite alternate;
-      }
-
-      #spaceship.thrusting::after {
-        height: 15px;
-        /* Visible height when thrusting */
-        opacity: 1;
-      }
-
-      @keyframes flicker {
-        0% {
-          transform: translateX(-50%) scaleY(1);
-        }
-
-        100% {
-          transform: translateX(-50%) scaleY(0.8);
-        }
       }
 
       /* Asteroids and Fragments */
@@ -269,6 +230,7 @@
         color: var(--hyperspace-ready);
         border-color: var(--hyperspace-ready);
         animation: pulse-ready 1.5s infinite;
+        /* box-shadow removed, handled by animation */
       }
 
       #hyperspace-status.recharging {
@@ -278,15 +240,18 @@
 
       @keyframes pulse-ready {
         0% {
-          box-shadow: 0 0 5px var(--hyperspace-ready);
+          /* Slightly dimmer border */
+          border-color: color-mix(in srgb, var(--hyperspace-ready), black 20%);
         }
 
         50% {
-          box-shadow: 0 0 15px var(--hyperspace-ready);
+          /* Full brightness border */
+          border-color: var(--hyperspace-ready);
         }
 
         100% {
-          box-shadow: 0 0 5px var(--hyperspace-ready);
+          /* Slightly dimmer border */
+          border-color: color-mix(in srgb, var(--hyperspace-ready), black 20%);
         }
       }
 
@@ -394,7 +359,7 @@
       ];
 
       // --- Game Settings ---
-      const SHIP_SIZE = { w: 24, h: 25 }; // Match CSS approx
+      const SHIP_SIZE = { w: 24, h: 28 }; // Match new CSS dimensions
       const SHIP_TURN_SPEED = 5; // Degrees per frame
       const SHIP_THRUST = 0.15;
       const SHIP_FRICTION = 0.985; // Slows down ship
