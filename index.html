@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asteroid Annihilator - Choose Your AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+      :root {
+        --game-bg: #000;
+        --ui-text-color: #0f0;
+        --gemini-color: #00f0f0;
+        --claude-color: #0f0;
+        --font-family: 'Press Start 2P', 'Courier New', monospace;
+      }
+
+      body {
+        margin: 0;
+        overflow: hidden;
+        background-color: var(--game-bg);
+        color: var(--ui-text-color);
+        font-family: var(--font-family);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        user-select: none;
+      }
+
+      #game-container {
+        position: relative;
+        width: 100vw;
+        height: 100vh;
+        z-index: 1;
+      }
+
+      #starfield {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        z-index: 0;
+      }
+
+      .star {
+        position: absolute;
+        background-color: #fff;
+        border-radius: 50%;
+      }
+
+      #main-menu {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        z-index: 2;
+      }
+
+      h1 {
+        font-size: 3rem;
+        margin-bottom: 2rem;
+        color: var(--ui-text-color);
+        text-shadow: 0 0 10px var(--ui-text-color), 0 0 20px var(--ui-text-color);
+        text-transform: uppercase;
+      }
+
+      p {
+        font-size: 1rem;
+        margin-bottom: 2rem;
+        color: #fff;
+        max-width: 600px;
+      }
+
+      .button-container {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+        margin-top: 2rem;
+      }
+
+      .ai-button {
+        padding: 1.5rem 2rem;
+        font-size: 1.2rem;
+        font-family: var(--font-family);
+        border: 3px solid;
+        border-radius: 8px;
+        cursor: pointer;
+        text-transform: uppercase;
+        transition: all 0.3s ease;
+        width: 350px;
+        box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+      }
+
+      #gemini-button {
+        background-color: rgba(0, 240, 240, 0.1);
+        color: var(--gemini-color);
+        border-color: var(--gemini-color);
+      }
+
+      #gemini-button:hover {
+        background-color: var(--gemini-color);
+        color: #000;
+        transform: scale(1.05);
+        box-shadow: 0 0 20px var(--gemini-color);
+      }
+
+      #claude-button {
+        background-color: rgba(0, 255, 0, 0.1);
+        color: var(--claude-color);
+        border-color: var(--claude-color);
+      }
+
+      #claude-button:hover {
+        background-color: var(--claude-color);
+        color: #000;
+        transform: scale(1.05);
+        box-shadow: 0 0 20px var(--claude-color);
+      }
+
+      .flashing {
+        animation: flash 2s infinite alternate;
+      }
+
+      @keyframes flash {
+        from {
+          opacity: 0.7;
+        }
+
+        to {
+          opacity: 1;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div id="game-container">
+      <div id="starfield"></div>
+      <div id="main-menu">
+        <h1 class="flashing">Asteroid Annihilator</h1>
+        <p>Choose your AI-generated game version:</p>
+        <div class="button-container">
+          <button id="gemini-button" class="ai-button" onclick="window.location.href='gemini.html'">
+            Gemini 2.5 Pro
+          </button>
+          <button id="claude-button" class="ai-button" onclick="window.location.href='claude.html'">
+            Claude 3.7 Sonnet
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Create starfield background
+      function createStars() {
+        const starfield = document.getElementById('starfield');
+        starfield.innerHTML = '';
+
+        // Create stars of different sizes for parallax effect
+        for (let i = 0; i < 100; i++) {
+          createStar(0.5 + Math.random() * 1.5, 0.1 + Math.random() * 0.3);
+        }
+
+        for (let i = 0; i < 50; i++) {
+          createStar(2 + Math.random() * 2, 0.3 + Math.random() * 0.3);
+        }
+
+        for (let i = 0; i < 20; i++) {
+          createStar(3 + Math.random() * 2, 0.6 + Math.random() * 0.4);
+        }
+      }
+
+      function createStar(size, speed) {
+        const star = document.createElement('div');
+        star.className = 'star';
+
+        const x = Math.random() * window.innerWidth;
+        const y = Math.random() * window.innerHeight;
+
+        star.style.width = size + 'px';
+        star.style.height = size + 'px';
+        star.style.left = x + 'px';
+        star.style.top = y + 'px';
+        star.style.opacity = Math.random() * 0.7 + 0.3;
+
+        // Add simple animation
+        star.style.animation = `twinkle ${Math.random() * 3 + 2}s infinite alternate`;
+
+        document.getElementById('starfield').appendChild(star);
+      }
+
+      // Initialize background
+      createStars();
+
+      // Recreate stars on window resize
+      window.addEventListener('resize', createStars);
+
+      // Add simple animation keyframes
+      const style = document.createElement('style');
+      style.textContent = `
+      @keyframes twinkle {
+        0% { opacity: ${Math.random() * 0.5 + 0.1}; }
+        100% { opacity: ${Math.random() * 0.3 + 0.7}; }
+      }
+    `;
+      document.head.appendChild(style);
+    </script>
+  </body>
+
+</html>
