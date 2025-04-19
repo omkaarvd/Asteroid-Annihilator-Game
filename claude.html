@@ -768,8 +768,8 @@
         // Create laser object
         const laser = {
           element: laserElement,
-          x: spaceship.x + Math.sin(angle) * 30,
-          y: spaceship.y - Math.cos(angle) * 30,
+          x: spaceship.x + Math.sin(angle),
+          y: spaceship.y - Math.cos(angle) * 12,
           vx: Math.sin(angle) * 10,
           vy: -Math.cos(angle) * 10,
           rotation: spaceship.rotation,
